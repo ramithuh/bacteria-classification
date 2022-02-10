@@ -20,6 +20,10 @@ import wandb
 # from modules.dataloaders import *
 from torchsummary import summary
 from torchmetrics.classification import Accuracy
+from torchmetrics import F1Score
+from torchmetrics import Precision
+from torchmetrics import Recall
+from torchmetrics import Specificity
 
 from modules.eval_metrics import *
 
@@ -38,8 +42,24 @@ def train_model(model, data,  criterion, optimizer, scheduler, num_epochs=25, n_
     os.mkdir(f'../results/{exp_name}')
 
     for epoch in range(num_epochs):
+        #epoch_wise metrics
+        
         train_accuracy = Accuracy(average = None, num_classes = n_classes, compute_on_step=False).to(device)
         val_accuracy   = Accuracy(average = None, num_classes = n_classes, compute_on_step=False).to(device)
+        
+        if(n_classes == 2): ## Calculate *binary* classification metrics
+            train_f1 = F1Score(multiclass=False, compute_on_step=False).to(device)
+            val_f1   = F1Score(multiclass=False, compute_on_step=False).to(device)
+
+            train_precision = Precision(multiclass=False, compute_on_step=False).to(device)
+            val_precision   = Precision(multiclass=False, compute_on_step=False).to(device)
+
+            train_recall = Recall(multiclass=False, compute_on_step=False).to(device)
+            val_recall   = Recall(multiclass=False, compute_on_step=False).to(device)
+
+            train_specificity = Specificity(multiclass=False, compute_on_step=False).to(device)
+            val_specificity   = Specificity(multiclass=False, compute_on_step=False).to(device)
+
 
         train_preds = torch.empty([0, ])
         train_labels = torch.empty([0, ])
@@ -85,6 +105,13 @@ def train_model(model, data,  criterion, optimizer, scheduler, num_epochs=25, n_
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         train_accuracy(preds, labels) #update train accuracy
+                       
+                        if(n_classes == 2): #update binary classification metrics (train)
+                            train_f1(preds, labels)
+                            train_precision(preds, labels)
+                            train_recall(preds, labels)
+                            train_specificity(preds, labels)
+
                         train_preds  = torch.cat((train_preds, preds.cpu()), dim = 0)
                         train_labels = torch.cat((train_labels, labels.cpu()), dim = 0)
 
@@ -92,6 +119,12 @@ def train_model(model, data,  criterion, optimizer, scheduler, num_epochs=25, n_
                         optimizer.step()
                     else:
                         val_accuracy(preds, labels) #update val accuracy
+
+                        if(n_classes == 2): #update binary classification metrics (val)
+                            val_f1(preds, labels)
+                            val_precision(preds, labels)
+                            val_recall(preds, labels)
+                            val_specificity(preds, labels)
                         
                         val_preds  = torch.cat((val_preds, preds.cpu()), dim = 0)
                         val_labels = torch.cat((val_labels, labels.cpu()), dim = 0)
@@ -124,6 +157,18 @@ def train_model(model, data,  criterion, optimizer, scheduler, num_epochs=25, n_
 
         t_acc = train_accuracy.compute().tolist()
         v_acc = val_accuracy.compute().tolist()
+
+        t_f1 = float(train_f1.compute()) if n_classes == 2 else float('nan')
+        v_f1 = float(val_f1.compute()) if n_classes == 2 else float('nan')
+
+        t_precision = float(train_precision.compute()) if n_classes == 2 else float('nan')
+        v_precision = float(val_precision.compute()) if n_classes == 2 else float('nan')
+
+        t_recall = float(train_recall.compute()) if n_classes == 2 else float('nan')
+        v_recall = float(val_recall.compute()) if n_classes == 2 else float('nan')
+
+        t_specificity = float(train_specificity.compute()) if n_classes == 2 else float('nan')
+        v_specificity = float(val_specificity.compute()) if n_classes == 2 else float('nan')
         
         print(t_acc)
         print()
@@ -140,6 +185,11 @@ def train_model(model, data,  criterion, optimizer, scheduler, num_epochs=25, n_
 
         wandb.log({"train loss" : train_loss, "train accuracy" : train_acc ,
                    "val loss" : val_loss, "val accuracy" : val_acc, 
+
+                   "train f1" : t_f1, "val f1" : v_f1,
+                   "train precision" : t_precision, "val precision" : v_precision,
+                   "train recall" : t_recall, "val recall" : v_recall,
+                   "train specificity" : t_specificity, "val specificity" : v_specificity,
                    
                    "train class accuracies": wandb.plot.bar(train_table, "class_name" , "accuracy", title="Train Per Class Accuracy"),
                    "val class accuracies": wandb.plot.bar(val_table, "class_name" , "accuracy", title="Val Per Class Accuracy"),
