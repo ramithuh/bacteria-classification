@@ -34,7 +34,8 @@ def get_bacteria_dataloaders(img_size, train_batch_size ,torch_seed=10, label_ty
     test_data  = bacteria_dataset(data_dir=data_dir, type_= 'test',  transform = my_transform, label_type = label_type, balance_data = balanced_mode , expand_channels = expand_channels)
     
     train_loader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, drop_last= True, num_workers=2)
-    val_loader   = DataLoader(val_data, batch_size  = 128, shuffle=True, drop_last= True, num_workers=2)
-    test_loader  = DataLoader(test_data, batch_size = 1024, shuffle=True, drop_last= True, num_workers=2)
+    val_loader   = DataLoader(val_data, batch_size  = 32, shuffle=True, drop_last= True, num_workers=2)
+    test_loader  = DataLoader(test_data, batch_size = 128, shuffle=True, drop_last= True, num_workers=2)
 
-    return train_loader, val_loader, test_loader
+    dataset_sizes = {'train': len(train_loader)*train_batch_size, 'val': len(val_loader)*32, 'test': len(test_loader)*128}
+    return train_loader, val_loader, test_loader, dataset_sizes
