@@ -11,7 +11,37 @@ import cv2
 import torchvision
 import matplotlib.pyplot as plt
 
+### Species level mapping
+# 0 => Acinetobacter
+# 1 => B subtilis
+# 2 => E. coli
+# 3 => K. pneumoniae
+# 4 => S. aureus
+#More info => https://ruhsoft-my.sharepoint.com/:p:/g/personal/im_ramith_fyi/EYMDb528EVlClCp2y8nIM8oB9LBZ-lbqEiCXwcAZHX7wew?e=lAROoR
 
+species_mapping_dict  = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 4,
+    4: 2,
+    5: 2,
+    6: 2,
+    7: 3,
+    8: 4,
+    9: 2,
+    10: 2,
+    11: 2,
+    12: 3,
+    13: 3,
+    14: 3,
+    15: 3,
+    16: 0,
+    17: 0,
+    18: 0,
+    19: 0,
+    20: 0,
+}
 class bacteria_dataset(torch.utils.data.Dataset):
     '''
         A standard dataset class to get the bacteria dataset
@@ -63,7 +93,7 @@ class bacteria_dataset(torch.utils.data.Dataset):
             else:
                 count = len(dirs[i])
 
-            img_dirs_filtered.append(dirs[i][:int(count)*0.05]) # take 50% of the data for each class
+            img_dirs_filtered.append(dirs[i][:int(count)]) 
                 
         self.img_dirs = [item for sublist in img_dirs_filtered for item in sublist] # flatten list
 
@@ -76,10 +106,14 @@ class bacteria_dataset(torch.utils.data.Dataset):
     def __getclass_(self, meta_data, label_type):
         if(label_type == 'class'):
             return meta_data[0]
-        elif(label_type == 'strain'):
+        elif(label_type == 'wild_type'):
             return meta_data[1]
-        else:
+        elif(label_type == 'gram_strain'):
             return meta_data[2]
+        elif(label_type == 'species'):
+            return species_mapping_dict[meta_data[0]] #map class to species
+        else:
+            raise Exception("Invalid label type")
         
     def __getitem__(self, idx): 
         data  = np.load(self.img_dirs[idx], allow_pickle=True)
