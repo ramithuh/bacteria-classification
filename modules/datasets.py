@@ -106,12 +106,22 @@ class bacteria_dataset(torch.utils.data.Dataset):
     def __getclass_(self, meta_data, label_type):
         if(label_type == 'class'):
             return meta_data[0]
-        elif(label_type == 'wild_type'):
-            return meta_data[1]
+            
+        elif(label_type == 'antibiotic_resistant'):
+            '''
+                Dataset wild_type equals to class 1
+
+                antibiotic_resistance is when class is => not wild_type
+            '''
+            antibiotic_resistance = int(not(meta_data[1]))
+            return antibiotic_resistance
+
         elif(label_type == 'gram_strain'):
             return meta_data[2]
+
         elif(label_type == 'species'):
             return species_mapping_dict[meta_data[0]] #map class to species
+
         else:
             raise Exception("Invalid label type")
         
