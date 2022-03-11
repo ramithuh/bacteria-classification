@@ -60,6 +60,6 @@ def get_bacteria_eval_dataloaders(img_size, test_batch_size ,torch_seed=10, labe
     test_data  = bacteria_dataset_selective(data_dir=data_dir, type_= 'test',  transform = my_transform, label_type = label_type, expand_channels = expand_channels, isolate_class = isolate_class)
     test_loader  = DataLoader(test_data, batch_size = test_batch_size, shuffle=True, drop_last= True, num_workers=2)
 
-    dataset_sizes = {'test': len(test_loader)*test_batch_size}
+    dataset_sizes = {'test': len(test_loader)}
 
     return test_loader, dataset_sizes

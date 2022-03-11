@@ -152,6 +152,7 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     test_labels = torch.empty([0, ])
 
     print('starting group testing..')
+    print(f' dataloader has {len(class_names)} classes to be evaluated')
       
     test_loss = 0
     test_acc = 0 
@@ -161,10 +162,10 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     running_loss = 0.0
     running_corrects = 0
     
-    for i in range(0, len(dataloaders)): #loop through each class of dataloader
-        print(f"New class eval - {i}", end = '\n')
+    for i in range(0, len(dataloaders)): #loop through each strain of dataloader
+        print(f"New strain batch eval - {i}", end = '\n')
 
-        for inputs, labels in dataloaders[str(i)]: #take a batch of data from each class
+        for inputs, labels in dataloaders[str(i)]: #take a batch of data from each strain
 
             inputs = inputs.to(device,dtype=torch.float)
             labels = labels.to(device)

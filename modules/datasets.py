@@ -169,7 +169,7 @@ class bacteria_dataset_selective(torch.utils.data.Dataset):
         #get all image paths in 'train', 'val' or 'test' folder
         all_dirs = sorted(glob.glob(f'{data_dir}/{type_}/*/*'), key= lambda x: int(x.split('/')[-1][:-4]))
 
-        print(f"Dataset type {type_} label type: {label_type}", end = " -> ")
+        print(f"Dataset type {type_}; dataloader will have label type: {label_type}", end = " -> ")
         print(f"All files = {len(all_dirs)}")
 
 
@@ -177,7 +177,7 @@ class bacteria_dataset_selective(torch.utils.data.Dataset):
 
         for i,x in enumerate(all_dirs):
             #data  = np.load(x, allow_pickle=True)[1]
-            class_ = global_dict[x.split('/')[-1]][self.label_type]
+            class_ = global_dict[x.split('/')[-1]]['class'] #always batching will be done along the same strain class
             #class_ = self.__getclass_(data, self.label_type)
             
             if(class_ == isolate_class): # only select the class needed
