@@ -10,6 +10,7 @@ import glob
 import cv2
 import torchvision
 import matplotlib.pyplot as plt
+import pickle
 
 ### Species level mapping
 # 0 => Acinetobacter
@@ -106,7 +107,7 @@ class bacteria_dataset(torch.utils.data.Dataset):
     def __getclass_(self, meta_data, label_type):
         if(label_type == 'class'):
             return meta_data[0]
-            
+
         elif(label_type == 'antibiotic_resistant'):
             '''
                 Dataset wild_type equals to class 1
@@ -141,6 +142,91 @@ class bacteria_dataset(torch.utils.data.Dataset):
         return image, label
 
 
+
+
+
+
+class bacteria_dataset_selective(torch.utils.data.Dataset):
+    '''
+        A standard dataset class to get the bacteria dataset
+        
+        Args:
+            data_dir  : data directory which contains data hierarchy
+            type_     : whether dataloader if train/ val 
+            transform : torchvision.transforms
+    '''
+    
+    def __init__(self, data_dir='datasets/bacteria_np', type_= 'train', transform= None, label_type = "class", expand_channels = False, isolate_class = False):
+        self.transform= transform
+        self.label_type = label_type
+        self.type_ = type_
+        self.expand_channels = expand_channels
+
+        #load dictionary which contains metadata of all bacteria images
+        with open('/n/home12/ramith/FYP/bacteria-classification/saved_dictionary.pkl', 'rb') as f:
+            global_dict = pickle.load(f)
+
+        #get all image paths in 'train', 'val' or 'test' folder
+        all_dirs = sorted(glob.glob(f'{data_dir}/{type_}/*/*'), key= lambda x: int(x.split('/')[-1][:-4]))
+
+        print(f"Dataset type {type_} label type: {label_type}", end = " -> ")
+        print(f"All files = {len(all_dirs)}")
+
+
+        img_dirs_filtered = []
+
+        for i,x in enumerate(all_dirs):
+            #data  = np.load(x, allow_pickle=True)[1]
+            class_ = global_dict[x.split('/')[-1]][self.label_type]
+            #class_ = self.__getclass_(data, self.label_type)
+            
+            if(class_ == isolate_class): # only select the class needed
+                img_dirs_filtered.append(x)
+                
+        self.img_dirs = img_dirs_filtered
+
+        print(f"Loaded {len(self.img_dirs)} images only from class {isolate_class}")
+
+        
+    def __len__(self):
+        return len(self.img_dirs)
+
+    def __getclass_(self, meta_data, label_type):
+        if(label_type == 'class'):
+            return meta_data[0]
+
+        elif(label_type == 'antibiotic_resistant'):
+            '''
+                Dataset wild_type equals to class 1
+
+                antibiotic_resistance is when class is => not wild_type
+            '''
+            antibiotic_resistance = int(not(meta_data[1]))
+            return antibiotic_resistance
+
+        elif(label_type == 'gram_strain'):
+            return meta_data[2]
+
+        elif(label_type == 'species'):
+            return species_mapping_dict[meta_data[0]] #map class to species
+
+        else:
+            raise Exception("Invalid label type")
+        
+    def __getitem__(self, idx): 
+        data  = np.load(self.img_dirs[idx], allow_pickle=True)
+        image = data[0]
+        
+
+        label = self.__getclass_(data[1], self.label_type)
+
+        if self.transform:
+            image = self.transform(image)
+        
+        if(self.expand_channels):
+            image = image.expand(3, image.shape[1], image.shape[1])
+        
+        return image, label
 
 
 

@@ -39,3 +39,27 @@ def get_bacteria_dataloaders(img_size, train_batch_size ,torch_seed=10, label_ty
 
     dataset_sizes = {'train': len(train_loader)*train_batch_size, 'val': len(val_loader)*32, 'test': len(test_loader)*128}
     return train_loader, val_loader, test_loader, dataset_sizes
+
+def get_bacteria_eval_dataloaders(img_size, test_batch_size ,torch_seed=10, label_type = "class", expand_channels = False, data_dir= '/n/holyscratch01/wadduwage_lab/D2NN_QPM_classification/datasets/bacteria_np', isolate_class = False):
+    '''
+        Function to return train, validation QPM dataloaders
+        Args:
+            img_size         : Image size to resize
+            train_batch_size : batch size for training
+            torch_seed       : seed
+            data_dir         : data directory which has the data hierachy as `./train/amp/00001.png`
+        Returns:
+            train_loader : Data loader for training
+            val_loader   : Data loader for validation
+    '''
+
+    torch.manual_seed(torch_seed)
+    # transforms.ToPILImage(), 
+    my_transform= transforms.Compose([transforms.ToTensor(), transforms.Resize((img_size, img_size))])
+
+    test_data  = bacteria_dataset_selective(data_dir=data_dir, type_= 'test',  transform = my_transform, label_type = label_type, expand_channels = expand_channels, isolate_class = isolate_class)
+    test_loader  = DataLoader(test_data, batch_size = test_batch_size, shuffle=True, drop_last= True, num_workers=2)
+
+    dataset_sizes = {'test': len(test_loader)*test_batch_size}
+
+    return test_loader, dataset_sizes
