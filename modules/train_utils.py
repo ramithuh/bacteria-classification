@@ -180,8 +180,8 @@ def train_model(model, data,  criterion, optimizer, scheduler, num_epochs=25, n_
         val_data = [[name, prec] for (name, prec) in zip(class_names, v_acc)]
         val_table = wandb.Table(data=val_data, columns=["class_name", "accuracy"])           
         
-        train_confusion_matrix = get_confusion_matrix(train_preds, train_labels, n_classes, class_names)
-        val_confusion_matrix   = get_confusion_matrix(val_preds, val_labels, n_classes, class_names)
+        train_confusion_matrix, _  = get_confusion_matrix(train_preds, train_labels, n_classes, class_names)
+        val_confusion_matrix, _   = get_confusion_matrix(val_preds, val_labels, n_classes, class_names)
 
         wandb.log({"train loss" : train_loss, "train accuracy" : train_acc ,
                    "val loss" : val_loss, "val accuracy" : val_acc, 
@@ -198,7 +198,7 @@ def train_model(model, data,  criterion, optimizer, scheduler, num_epochs=25, n_
                    "val_confusion_matrix" : val_confusion_matrix})
         print()
 
-        save_model_name =  f"../results/{exp_name}/latest_model.pth"
+        save_model_name =  f"../results/{exp_name}/latest_model_epoch-{epoch}.pth"
         torch.save({
                 'state_dict': model.state_dict(),
                 'cfg': cfg,

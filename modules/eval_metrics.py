@@ -1,12 +1,64 @@
 import numpy as np
 import wandb
 import plotly.graph_objs as go
+import plotly.figure_factory as ff
 from sklearn.metrics import confusion_matrix
+
+
+def get_static_confusion_matrix(confmatrix,classes):
+    z = confmatrix
+    x = classes
+    y = classes
+    
+
+    z_text = [[str(y) for y in x] for x in z]
+
+    # set up figure 
+    fig = ff.create_annotated_heatmap(z, x=x, y=y, annotation_text=z_text, colorscale='Viridis')
+
+    # add title
+    # fig.update_layout(title_text='',
+    #                   #xaxis = dict(title='x'),
+    #                   yaxis = dict(title='Predicted')
+    #                  )
+
+    # add custom xaxis title
+    fig.add_annotation(dict(font=dict(color="black",size=13),
+                            x=0.5,
+                            y=-0.34,
+                            showarrow=False,
+                            text="<b>True Class</b>",
+                            xref="paper",
+                            yref="paper"))
+
+    # add custom yaxis title
+    fig.add_annotation(dict(font=dict(color="black",size=13),
+                            x=-0.2,
+                            y=0.5,
+                            showarrow=False,
+                            text="<b>Predicted</b>",
+                            textangle=-90,
+                            xref="paper",
+                            yref="paper"))
+
+    # adjust margins to make room for yaxis title
+
+    fig.update_layout(margin=dict(t=50, l=200))
+
+    # add colorbar
+    fig['data'][0]['showscale'] = True
+    fig['layout']['xaxis']['side'] = 'bottom'
+    return fig
 
 
 def get_confusion_matrix(y_pred, y_val, n_classes, labels):
     
     confmatrix = confusion_matrix(y_pred, y_val, labels=range(n_classes)) 
+
+    saved_confmatrix = np.copy(confmatrix).tolist()
+    static_fig = get_static_confusion_matrix(saved_confmatrix,labels)
+
+
     confdiag = np.eye(len(confmatrix)) * confmatrix 
     np.fill_diagonal(confmatrix, 0)
     confmatrix = confmatrix.astype('float')
@@ -37,4 +89,4 @@ def get_confusion_matrix(y_pred, y_val, n_classes, labels):
 
     fig.update_layout(title={'text': 'Confusion matrix', 'x': 0.5}, paper_bgcolor=transparent, plot_bgcolor=transparent, xaxis=xaxis, yaxis=yaxis)
 
-    return {'confusion_matrix': wandb.data_types.Plotly(fig)}
+    return {'confusion_matrix': wandb.data_types.Plotly(fig), 'static_confusion_matrix': wandb.data_types.Plotly(static_fig)}, saved_confmatrix

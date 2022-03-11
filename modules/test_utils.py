@@ -107,7 +107,7 @@ def test_model(model, data,  criterion, n_classes = 0, device = 'cpu', cfg = Non
     test_data = [[name, prec] for (name, prec) in zip(class_names, t_acc)]
     test_table = wandb.Table(data=test_data, columns=["class_name", "accuracy"])      
     
-    test_confusion_matrix = get_confusion_matrix(test_preds, test_labels, n_classes, class_names)
+    test_confusion_matrix, saved_confmatrix = get_confusion_matrix(test_preds, test_labels, n_classes, class_names)
 
     wandb.log({"test loss" : test_loss, "test accuracy" : test_acc ,
                 "test f1" : t_f1,
@@ -116,7 +116,8 @@ def test_model(model, data,  criterion, n_classes = 0, device = 'cpu', cfg = Non
                 "test specificity" : t_specificity,
         
                 "test class accuracies": wandb.plot.bar(test_table, "class_name" , "accuracy", title="Test Per Class Accuracy"),
-                "test_confusion_matrix" : test_confusion_matrix})
+                "test_confusion_matrix" : test_confusion_matrix
+                })
     print()
 
     time_elapsed = time.time() - since
@@ -124,4 +125,4 @@ def test_model(model, data,  criterion, n_classes = 0, device = 'cpu', cfg = Non
         time_elapsed // 60, time_elapsed % 60))
     print('Test Acc: {:4f}'.format(test_acc))
 
-    return True
+    return saved_confmatrix
