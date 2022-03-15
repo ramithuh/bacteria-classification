@@ -48,9 +48,22 @@ class bacteria_dataset(torch.utils.data.Dataset):
         A standard dataset class to get the bacteria dataset
         
         Args:
-            data_dir  : data directory which contains data hierarchy
-            type_     : whether dataloader if train/ val 
-            transform : torchvision.transforms
+            data_dir   : data directory which contains data hierarchy
+            type_      : whether dataloader if train/ val 
+            transform  : torchvision.transforms
+            label_type : There are multiple types of classification in bacteria dataset
+                         therefore, specify which label you need as follows:
+
+                            | label_type              | Description
+                            |------------------------ |---------------
+                            | 'class'                 | Strain (0-20)
+                            | 'antibiotic_resistant'  | Non wild type (1) / Wild type (0)
+                            | 'gram_strain'           | Gram Positive (1) / Gram Negative (0)
+                            | 'species'               | Species (0-4)
+
+            balance_data    : If true, then the dataset will be balanced by the minimum class count   
+            expand_channels : If true, then the bacteria image will be copied to 3 channels 
+                              (used for some predefined backbone architectures which require RGB images)
     '''
     
     def __init__(self, data_dir='datasets/bacteria_np', type_= 'train', transform= None, label_type = "class", balance_data = False, expand_channels = False):
@@ -67,11 +80,9 @@ class bacteria_dataset(torch.utils.data.Dataset):
         dirs = {}
 
         for i,x in enumerate(all_dirs):
-            # data  = np.load(x, allow_pickle=True)[1]
-            # class_ = self.__getclass_(data, self.label_type)
 
-            class_ = int(x.split('/')[-2])
-            
+            class_ = int(x.split('/')[-2])  #read strain class, encoded in folder name (x.split('/')[-2])
+             
             if(class_ in dirs.keys()):
                 dirs[class_].append(x)
             else:
@@ -81,7 +92,8 @@ class bacteria_dataset(torch.utils.data.Dataset):
 
         ## Get the class with minimum count
         min_class_count = 1000000000
-        if(balance_data):
+
+        if(balance_data):           #if dataset needs to be balanced in terms of count per each class (strain)
             for i in range(0,21):
                 count = len(dirs[i])
                 if(count < min_class_count):
@@ -94,7 +106,7 @@ class bacteria_dataset(torch.utils.data.Dataset):
             else:
                 count = len(dirs[i])
 
-            img_dirs_filtered.append(dirs[i][:int(count)]) 
+            img_dirs_filtered.append(dirs[i][:int(count)]) #NOTE! to test, only use a small portion of data (e.g. 10% => int(count*0.1) )
                 
         self.img_dirs = [item for sublist in img_dirs_filtered for item in sublist] # flatten list
 
