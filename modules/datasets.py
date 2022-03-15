@@ -56,14 +56,14 @@ class bacteria_dataset(torch.utils.data.Dataset):
 
                             | label_type              | Description
                             |------------------------ |---------------
-                            | 'class'                 | Strain (0-20)
+                            | 'class' (default)       | Strain (0-20)
                             | 'antibiotic_resistant'  | Non wild type (1) / Wild type (0)
                             | 'gram_strain'           | Gram Positive (1) / Gram Negative (0)
                             | 'species'               | Species (0-4)
 
-            balance_data    : If true, then the dataset will be balanced by the minimum class count   
-            expand_channels : If true, then the bacteria image will be copied to 3 channels 
-                              (used for some predefined backbone architectures which require RGB images)
+            balance_data    : If true, dataset will be balanced by the minimum class count (default: False)
+            expand_channels : If true, bacteria image will be copied to 3 channels  (default: False)
+                              (used for some predefined backbones which need RGB images)
     '''
     
     def __init__(self, data_dir='datasets/bacteria_np', type_= 'train', transform= None, label_type = "class", balance_data = False, expand_channels = False):
@@ -76,7 +76,7 @@ class bacteria_dataset(torch.utils.data.Dataset):
 
         print(f"Dataset type {type_} label type: {label_type}", end = " -> ")
 
-        ### Extract portion of all files for each class
+        ### Extract directories of all files to a dictionary (key: class (strain), value: list of files)
         dirs = {}
 
         for i,x in enumerate(all_dirs):

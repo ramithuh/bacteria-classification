@@ -17,7 +17,23 @@ def get_bacteria_dataloaders(img_size, train_batch_size ,torch_seed=10, label_ty
             img_size         : Image size to resize
             train_batch_size : batch size for training
             torch_seed       : seed
+            label_type : There are multiple types of classification in bacteria dataset
+                         therefore, specify which label you need as follows:
+
+                            | label_type              | Description
+                            |------------------------ |---------------
+                            | 'class' (default)       | Strain (0-20)
+                            | 'antibiotic_resistant'  | Non wild type (1) / Wild type (0)
+                            | 'gram_strain'           | Gram Positive (1) / Gram Negative (0)
+                            | 'species'               | Species (0-4)
+
+            balance_data    : If true, dataset will be balanced by the minimum class count (default: False)
+            expand_channels : If true, bacteria image will be copied to 3 channels  (default: False)
+                              (used for some predefined backbones which need RGB images)
+                            
+
             data_dir         : data directory which has the data hierachy as `./train/amp/00001.png`
+
         Returns:
             train_loader : Data loader for training
             val_loader   : Data loader for validation
