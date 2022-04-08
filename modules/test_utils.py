@@ -162,6 +162,9 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     running_loss = 0.0
     running_corrects = 0
     
+    outs = {}
+    softmax = nn.Softmax(dim=1)
+
     for i in range(0, len(dataloaders)): #loop through each strain of dataloader
         print(f"New strain batch eval - {i}", end = '\n')
 
@@ -171,6 +174,8 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
             labels = labels.to(device)
 
             outputs = model(inputs)
+            
+
             _, preds = torch.max(outputs, 1)
             loss = criterion(outputs, labels)
 
@@ -179,6 +184,13 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
             
             labels = torch.mode(labels, 0)[0]
             labels = torch.reshape(labels, (-1,))
+
+            if(labels.cpu().numpy()[0] not in outs):
+                outs[labels.cpu().numpy()[0]] = []
+
+            probabilities = softmax(outputs.detach().cpu()).tolist() #convert to probabilities
+
+            outs[labels.cpu().numpy()[0]].append(probabilities) #append probabilities to the dict of probabilities of each class
 
             test_accuracy(preds, labels) #update test accuracy
 
@@ -236,4 +248,4 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
         time_elapsed // 60, time_elapsed % 60))
     print('Test Acc: {:4f}'.format(test_acc))
 
-    return saved_confmatrix
+    return saved_confmatrix, outs
