@@ -32,7 +32,7 @@ def get_bacteria_dataloaders(img_size, train_batch_size ,torch_seed=10, label_ty
                               (used for some predefined backbones which need RGB images)
                             
 
-            data_dir         : data directory which has the data hierachy as `./train/amp/00001.png`
+            data_dir         : data directory which has the data hierachy as `./test/0/0_15612.npy`
 
         Returns:
             train_loader : Data loader for training
