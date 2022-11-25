@@ -1,0 +1,9 @@
+torchmetrics
+pytorch-msssim
+wandb
+scikit-learn
+plotly
+pytorch-ignite
+opencv-python
+scikit-image
+matplotlib
