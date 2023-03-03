@@ -20,12 +20,16 @@ import wandb
 # from modules.dataloaders import *
 from torchsummary import summary
 from torchmetrics.classification import Accuracy
+# from torchmetrics.classification import MulticlassAUROC
 from torchmetrics import F1Score
 from torchmetrics import Precision
 from torchmetrics import Recall
 from torchmetrics import Specificity
+from torchmetrics import AUROC
+
 
 from sklearn.metrics import classification_report
+from sklearn.metrics import roc_auc_score
 
 from modules.eval_metrics import *
 
@@ -140,22 +144,28 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     
     since = time.time()
 
-    test_accuracy = Accuracy(average = None, num_classes = n_classes, compute_on_step=False).to(device)
+    
     
     if(n_classes == 2): ## Calculate *binary* classification metrics
+        test_accuracy = Accuracy(task="binary", average = None, num_classes = n_classes, compute_on_step=False).to(device)
+
         test_f1        = F1Score(task="binary", compute_on_step=False).to(device)
         test_precision = Precision(task="binary", compute_on_step=False).to(device)
         test_recall    = Recall(task="binary", compute_on_step=False).to(device)
         test_specificity = Specificity(task="binary", compute_on_step=False).to(device)
+        # test_auroc     = AUROC(task="binary").to(device)
     else:
+        test_accuracy = Accuracy(task="multiclass", average = None, num_classes = n_classes, compute_on_step=False).to(device)
+
         test_f1          =      F1Score(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
         test_precision   =    Precision(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
         test_recall      =       Recall(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
         test_specificity =  Specificity(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
-
+        # test_auroc       = MulticlassAUROC(num_classes = n_classes, average="macro").to(device)
 
     test_preds = torch.empty([0, ])
     test_labels = torch.empty([0, ])
+    test_labels_ = torch.empty([0, ])
 
     print('starting group testing..')
     print(f' dataloader has {len(class_names)} classes to be evaluated')
@@ -169,6 +179,7 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     running_corrects = 0
     
     outs = {}
+    pred_probs = torch.empty([0, ])
     softmax = nn.Softmax(dim=1)
 
     for i in range(0, len(dataloaders)): #loop through each strain of dataloader
@@ -177,6 +188,7 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
         for inputs, labels in dataloaders[str(i)]: #take a batch of data from each strain
 
             inputs = inputs.to(device,dtype=torch.float)
+            labels_ = labels.to(device) #same label map without getting mode
             labels = labels.to(device)
 
             outputs = model(inputs)
@@ -208,6 +220,8 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
                     
             test_preds  = torch.cat((test_preds, preds.cpu()), dim = 0)
             test_labels = torch.cat((test_labels, labels.cpu()), dim = 0)
+            test_labels_ = torch.cat((test_labels_, labels_.cpu()), dim = 0)
+            pred_probs  = torch.cat((pred_probs, softmax(outputs.detach().cpu())), dim = 0)
 
             # statistics
             running_loss += loss.item() * inputs.size(0)
@@ -223,6 +237,17 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     print('{} Loss: {:.4f} Acc: {:.4f}'.format(
         "test", epoch_loss, epoch_acc))
 
+
+    ##AUROC
+    t_auroc = 0 #test_auroc(pred_probs, test_labels_.to(dtype = torch.int32))
+    ### AUROC from sklearn
+
+    # print("shape of pred_probs", pred_probs.shape)
+    # print("shape of test_labels", test_labels_.shape)
+
+
+    # print("Sklearn ROC AUC (ovr)", roc_auc_score(test_labels_.to(dtype = torch.int32), pred_probs, multi_class= 'ovr'))
+    # print("Sklearn ROC AUC (ovo)", roc_auc_score(test_labels_.to(dtype = torch.int32), pred_probs, multi_class= 'ovo'))
 
     t_acc = test_accuracy.compute().tolist()
     t_f1 = float(test_f1.compute()) if n_classes == 2 else test_f1.compute().tolist()
@@ -273,6 +298,8 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
               "test class f1"        : wandb.plot.bar(test_f1_table, "class_name" , "f1", title="Test Per Class F1"),
               "test class precision" : wandb.plot.bar(test_precision_table, "class_name" , "precision", title="Test Per Class Precision"),
               "test class recall"    : wandb.plot.bar(test_recall_table, "class_name" , "recall", title="Test Per Class Recall"),
+
+              'test AUROC' : t_auroc,
               
               
               "test_confusion_matrix" : test_confusion_matrix
