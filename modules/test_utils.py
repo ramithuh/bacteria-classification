@@ -25,6 +25,8 @@ from torchmetrics import Precision
 from torchmetrics import Recall
 from torchmetrics import Specificity
 
+from sklearn.metrics import classification_report
+
 from modules.eval_metrics import *
 
 
@@ -38,13 +40,13 @@ def test_model(model, data,  criterion, n_classes = 0, device = 'cpu', cfg = Non
     test_accuracy = Accuracy(average = None, num_classes = n_classes, compute_on_step=False).to(device)
     
     if(n_classes == 2): ## Calculate *binary* classification metrics
-        test_f1 = F1Score(multiclass=False, compute_on_step=False).to(device)
+        test_f1 = F1Score(task="binary", compute_on_step=False).to(device)
     
-        test_precision = Precision(multiclass=False, compute_on_step=False).to(device)
+        test_precision = Precision(task="binary", compute_on_step=False).to(device)
         
-        test_recall = Recall(multiclass=False, compute_on_step=False).to(device)
+        test_recall = Recall(task="binary", compute_on_step=False).to(device)
         
-        test_specificity = Specificity(multiclass=False, compute_on_step=False).to(device)
+        test_specificity = Specificity(task="binary", compute_on_step=False).to(device)
 
     test_preds = torch.empty([0, ])
     test_labels = torch.empty([0, ])
@@ -134,19 +136,23 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     dataloaders   = data[0]
     dataset_sizes = data[1]
     class_names   = data[2]
+    N = data[3]
     
     since = time.time()
 
     test_accuracy = Accuracy(average = None, num_classes = n_classes, compute_on_step=False).to(device)
     
     if(n_classes == 2): ## Calculate *binary* classification metrics
-        test_f1 = F1Score(multiclass=False, compute_on_step=False).to(device)
-    
-        test_precision = Precision(multiclass=False, compute_on_step=False).to(device)
-        
-        test_recall = Recall(multiclass=False, compute_on_step=False).to(device)
-        
-        test_specificity = Specificity(multiclass=False, compute_on_step=False).to(device)
+        test_f1        = F1Score(task="binary", compute_on_step=False).to(device)
+        test_precision = Precision(task="binary", compute_on_step=False).to(device)
+        test_recall    = Recall(task="binary", compute_on_step=False).to(device)
+        test_specificity = Specificity(task="binary", compute_on_step=False).to(device)
+    else:
+        test_f1          =      F1Score(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+        test_precision   =    Precision(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+        test_recall      =       Recall(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+        test_specificity =  Specificity(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+
 
     test_preds = torch.empty([0, ])
     test_labels = torch.empty([0, ])
@@ -194,11 +200,11 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
 
             test_accuracy(preds, labels) #update test accuracy
 
-            if(n_classes == 2): #update binary classification metrics (test)
-                test_f1(preds, labels)
-                test_precision(preds, labels)
-                test_recall(preds, labels)
-                test_specificity(preds, labels)
+            #if(n_classes == 2): #update binary classification metrics (test)
+            test_f1(preds, labels)
+            test_precision(preds, labels)
+            test_recall(preds, labels)
+            test_specificity(preds, labels)
                     
             test_preds  = torch.cat((test_preds, preds.cpu()), dim = 0)
             test_labels = torch.cat((test_labels, labels.cpu()), dim = 0)
@@ -219,28 +225,58 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
 
 
     t_acc = test_accuracy.compute().tolist()
-    t_f1 = float(test_f1.compute()) if n_classes == 2 else float('nan')
-    t_precision = float(test_precision.compute()) if n_classes == 2 else float('nan')
-    t_recall = float(test_recall.compute()) if n_classes == 2 else float('nan')
-    t_specificity = float(test_specificity.compute()) if n_classes == 2 else float('nan')
+    t_f1 = float(test_f1.compute()) if n_classes == 2 else test_f1.compute().tolist()
+    t_precision = float(test_precision.compute()) if n_classes == 2 else test_precision.compute().tolist()
+    t_recall = float(test_recall.compute()) if n_classes == 2 else test_recall.compute().tolist()
+    t_specificity = float(test_specificity.compute()) if n_classes == 2 else test_specificity.compute().tolist()
     
-    print(t_acc)
-    print()
+    print("test accuracy",t_acc)
+    print("test f1",t_f1)
+    print("test precision",t_precision)
+    print("test recall",t_recall)
+    print("test specificity",t_specificity)
+
+    print("scikit learn metrics")
+    print(classification_report(test_labels, test_preds))
                 
-    # test_data = [[name, prec] for (name, prec) in zip(class_names, t_acc)]
-    # test_table = wandb.Table(data=test_data, columns=["class_name", "accuracy"])      
+
+    ## Accuracy Table
+    test_acc_data  = [[name, prec] for (name, prec) in zip(class_names, t_acc)]
+    test_acc_table = wandb.Table(data=test_acc_data, columns=["class_name", "accuracy"])
+
+    ## F1 Table
+    test_f1_data  = [[name, prec] for (name, prec) in zip(class_names, t_f1)]
+    test_f1_table = wandb.Table(data=test_f1_data, columns=["class_name", "f1"])
+
+    ## Precision Table
+    test_precision_data  = [[name, prec] for (name, prec) in zip(class_names, t_precision)]
+    test_precision_table = wandb.Table(data=test_precision_data, columns=["class_name", "precision"])
+
+    ## Recall Table
+    test_recall_data  = [[name, prec] for (name, prec) in zip(class_names, t_recall)]
+    test_recall_table = wandb.Table(data=test_recall_data, columns=["class_name", "recall"])
     
     test_confusion_matrix, saved_confmatrix = get_confusion_matrix(test_preds, test_labels, n_classes, class_names)
 
-    # wandb.log({"test loss" : test_loss, "test accuracy" : test_acc ,
-    #             "test f1" : t_f1,
-    #             "test precision" : t_precision,
-    #             "test recall" : t_recall,
-    #             "test specificity" : t_specificity,
-        
-    #             "test class accuracies": wandb.plot.bar(test_table, "class_name" , "accuracy", title="Test Per Class Accuracy"),
-    #             "test_confusion_matrix" : test_confusion_matrix
-    #             })
+    wandb.log({
+
+              "N": N,
+
+              "test loss" : test_loss, 
+            #   "test accuracy" : wandb.plot.bar(test_acc_table, "class_name" , "accuracy", title="Test Per Class Accuracy"),
+              "test f1" : t_f1,
+              "test precision" : t_precision,
+              "test recall" : t_recall,
+              "test specificity" : t_specificity,
+      
+              "test class accuracies": wandb.plot.bar(test_acc_table, "class_name" , "accuracy", title="Test Per Class Accuracy"),
+              "test class f1"        : wandb.plot.bar(test_f1_table, "class_name" , "f1", title="Test Per Class F1"),
+              "test class precision" : wandb.plot.bar(test_precision_table, "class_name" , "precision", title="Test Per Class Precision"),
+              "test class recall"    : wandb.plot.bar(test_recall_table, "class_name" , "recall", title="Test Per Class Recall"),
+              
+              
+              "test_confusion_matrix" : test_confusion_matrix
+                })
     # print()
 
     time_elapsed = time.time() - since
