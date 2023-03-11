@@ -10,7 +10,7 @@ from modules.datasets import *
 import matplotlib.pyplot as plt
 
 
-def get_bacteria_dataloaders(img_size, train_batch_size ,torch_seed=10, label_type = "class", balanced_mode = False, expand_channels = False, data_dir= '/n/holyscratch01/wadduwage_lab/D2NN_QPM_classification/datasets/bacteria_np'):
+def get_bacteria_dataloaders(img_size, train_batch_size ,torch_seed=10, label_type = "class", balanced_mode = False, expand_channels = False, data_dir= '/n/holyscratch01/wadduwage_lab/ramith/bacteria_processed'):
     '''
         Function to return train, validation QPM dataloaders
         Args:
@@ -56,7 +56,7 @@ def get_bacteria_dataloaders(img_size, train_batch_size ,torch_seed=10, label_ty
     dataset_sizes = {'train': len(train_loader)*train_batch_size, 'val': len(val_loader)*32, 'test': len(test_loader)*128}
     return train_loader, val_loader, test_loader, dataset_sizes
 
-def get_bacteria_eval_dataloaders(img_size, test_batch_size ,torch_seed=10, label_type = "class", expand_channels = False, data_dir= '/n/holyscratch01/wadduwage_lab/D2NN_QPM_classification/datasets/bacteria_np', isolate_class = False):
+def get_bacteria_eval_dataloaders(img_size, test_batch_size ,torch_seed=10, label_type = "class", expand_channels = False, data_dir= '/n/holyscratch01/wadduwage_lab/ramith/bacteria_processed', isolate_class = False):
     '''
         Function to return train, validation QPM dataloaders
         Args:

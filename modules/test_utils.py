@@ -146,21 +146,21 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
 
     
     
-    if(n_classes == 2): ## Calculate *binary* classification metrics
-        test_accuracy = Accuracy(task="binary", average = None, num_classes = n_classes, compute_on_step=False).to(device)
+    # if(n_classes == 2): ## Calculate *binary* classification metrics
+    #     test_accuracy = Accuracy(task="binary", average = None, num_classes = n_classes, compute_on_step=False).to(device)
 
-        test_f1        = F1Score(task="binary", compute_on_step=False).to(device)
-        test_precision = Precision(task="binary", compute_on_step=False).to(device)
-        test_recall    = Recall(task="binary", compute_on_step=False).to(device)
-        test_specificity = Specificity(task="binary", compute_on_step=False).to(device)
-        # test_auroc     = AUROC(task="binary").to(device)
-    else:
-        test_accuracy = Accuracy(task="multiclass", average = None, num_classes = n_classes, compute_on_step=False).to(device)
+    #     test_f1        = F1Score(task="binary", compute_on_step=False).to(device)
+    #     test_precision = Precision(task="binary", compute_on_step=False).to(device)
+    #     test_recall    = Recall(task="binary", compute_on_step=False).to(device)
+    #     test_specificity = Specificity(task="binary", compute_on_step=False).to(device)
+    #     # test_auroc     = AUROC(task="binary").to(device)
+    # else:
+    test_accuracy = Accuracy(task="multiclass", average = None, num_classes = n_classes, compute_on_step=False).to(device)
 
-        test_f1          =      F1Score(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
-        test_precision   =    Precision(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
-        test_recall      =       Recall(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
-        test_specificity =  Specificity(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+    test_f1          =      F1Score(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+    test_precision   =    Precision(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+    test_recall      =       Recall(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
+    test_specificity =  Specificity(task="multiclass", num_classes = n_classes, compute_on_step=False, average = None).to(device)
         # test_auroc       = MulticlassAUROC(num_classes = n_classes, average="macro").to(device)
 
     test_preds = torch.empty([0, ])
@@ -250,10 +250,10 @@ def test_model_in_groups(model, data,  criterion, n_classes = 0, device = 'cpu',
     # print("Sklearn ROC AUC (ovo)", roc_auc_score(test_labels_.to(dtype = torch.int32), pred_probs, multi_class= 'ovo'))
 
     t_acc = test_accuracy.compute().tolist()
-    t_f1 = float(test_f1.compute()) if n_classes == 2 else test_f1.compute().tolist()
-    t_precision = float(test_precision.compute()) if n_classes == 2 else test_precision.compute().tolist()
-    t_recall = float(test_recall.compute()) if n_classes == 2 else test_recall.compute().tolist()
-    t_specificity = float(test_specificity.compute()) if n_classes == 2 else test_specificity.compute().tolist()
+    t_f1 = float(test_f1.compute()) if n_classes == 1 else test_f1.compute().tolist()
+    t_precision = float(test_precision.compute()) if n_classes == 1 else test_precision.compute().tolist()
+    t_recall = float(test_recall.compute()) if n_classes == 1 else test_recall.compute().tolist()
+    t_specificity = float(test_specificity.compute()) if n_classes == 1 else test_specificity.compute().tolist()
     
     print("test accuracy",t_acc)
     print("test f1",t_f1)
