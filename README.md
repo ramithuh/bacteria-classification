@@ -2,8 +2,10 @@
 
 This repository contains the official python implementation of the paper - https://doi.org/10.1101/2022.07.07.499154
 
+Test set download link -> [Google Drive](https://drive.google.com/drive/folders/1bMreABC4tNppzYG56SdTbkFrlVfZlS9U?usp=share_link)
 
-# Setting up the environment 
+
+## Setting up the environment 
 ```bash
 ## create new environment
 conda create -n qpm_env python=3.6
@@ -21,7 +23,7 @@ conda install -c conda-forge wandb
 pip install -r requirements.txt
 ```
 
-# Directory Structure
+## Directory Structure
 - Modules - supporting python library
 - Notebooks - different experiments
 
@@ -33,6 +35,21 @@ pip install -r requirements.txt
 |Strain Level Classification| [Notebook](https://github.com/ramithuh/bacteria-classification/blob/main/notebooks/train-21-strains-resnet.ipynb) | [link](https://github.com/ramithuh/bacteria-classification/blob/main/results/Strain%20Classification%20-%20Resnet%20181645133846.9762254/latest_model_epoch-7.pth) | [Notebook](https://github.com/ramithuh/bacteria-classification/blob/main/notebooks/N_group_evaluation/strain_level_with_N.ipynb)|
 
 
+
+## Running predicitons on the blind test
+
+After downloading pretrained models and test dataset, you can edit the `path` in the python scripts below and the [dataloader.py](https://github.com/ramithuh/bacteria-classification/blob/75ea65325e4a9ba91f36879e217230d4f73a260c/modules/dataloaders.py#L59) using `data_dir` variable.
+
+Specify the concentration level (N) to be used for prediction in the line below, 
+https://github.com/ramithuh/bacteria-classification/blob/75ea65325e4a9ba91f36879e217230d4f73a260c/notebooks/N_group_evaluation/verify_strain.py#L68
+
+Eg. running for N = 3, replace the line with,
+`for N in [3]:`
+
+- Antibiotic Resistance - [verify_arp.py](https://github.com/ramithuh/bacteria-classification/blob/main/notebooks/N_group_evaluation/verify_arp.py)
+- Gram Stain Classification - [verify_gram.py](https://github.com/ramithuh/bacteria-classification/blob/main/notebooks/N_group_evaluation/verify_gram.py)
+- Species Classification - [verify_species.py](https://github.com/ramithuh/bacteria-classification/blob/main/notebooks/N_group_evaluation/verify_species.py)
+- Strain Classification - [verify_strain.py](https://github.com/ramithuh/bacteria-classification/blob/main/notebooks/N_group_evaluation/verify_strain.py)
 
 
 
