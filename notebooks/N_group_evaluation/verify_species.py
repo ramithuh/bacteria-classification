@@ -61,7 +61,7 @@ model.eval();
 # data_dir = '/n/holyscratch01/wadduwage_lab/D2NN_QPM_classification/datasets/bacteria/'
 data_dir = '/n/holyscratch01/wadduwage_lab/ramith/bacteria_processed'
 
-for N in [31,15,7,3,1]:
+for N in [63]:
     dataloaders = {}
 
     _, _, _, _ =  get_bacteria_dataloaders(cfg['img_size'], N , 10, label_type = cfg['label_type'], balanced_mode = False, expand_channels = cfg['expand_channels'])
@@ -83,7 +83,9 @@ for N in [31,15,7,3,1]:
     
     from modules.test_utils import test_model_in_groups
     
-    test_model_in_groups(model_ft, [dataloaders, dataset_sizes, class_names,N] , criterion, n_classes = cfg['n_classes'] , device = device, cfg = cfg)
+    mat, _ = test_model_in_groups(model_ft, [dataloaders, dataset_sizes, class_names,N] , criterion, n_classes = cfg['n_classes'] , device = device, cfg = cfg)
+    
+    print(mat)
     
     wandb.finish()
     

@@ -62,7 +62,7 @@ model.eval();
 
 data_dir = '/n/holyscratch01/wadduwage_lab/ramith/bacteria_processed'
 
-for N in [63,31,15,7,3,1]:
+for N in [63]:
 
     dataloaders = {}
     
@@ -85,6 +85,8 @@ for N in [63,31,15,7,3,1]:
     
     from modules.test_utils import test_model_in_groups
     
-    test_model_in_groups(model_ft, [dataloaders, dataset_sizes, class_names, N] , criterion, n_classes = cfg['n_classes'] , device = device, cfg = cfg)
+    mat, _ = test_model_in_groups(model_ft, [dataloaders, dataset_sizes, class_names, N] , criterion, n_classes = cfg['n_classes'] , device = device, cfg = cfg)
+    
+    print(mat)
     
     wandb.finish()
