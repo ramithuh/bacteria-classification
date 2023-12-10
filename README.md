@@ -2,7 +2,7 @@
 
 This repository contains the official python implementation of the paper - https://doi.org/10.1101/2022.07.07.499154
 
-Test set download link -> [Google Drive](https://drive.google.com/drive/folders/1bMreABC4tNppzYG56SdTbkFrlVfZlS9U?usp=share_link)
+Dataset download link -> [Google Drive](https://drive.google.com/drive/folders/1bMreABC4tNppzYG56SdTbkFrlVfZlS9U?usp=share_link)
 
 
 ## Setting up the environment 
